@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:epubx/epubx.dart' as epubx;
 import 'dart:io';
-/// Flutter code sample for [Drawer].
 
 void main() => runApp(const EpubReaderApp());
 
@@ -31,6 +30,27 @@ class _DrawerExampleState extends State<DrawerExample> {
   String epubName = '';
   epubx.EpubBook? epubFile;
   List<Widget> contents = [];
+
+  List<Widget> buildContentList(epubx.EpubBook? book, int index) {
+    if (book == null) {
+      return [];
+    } else {
+      var chapters = book.Chapters!;
+      return List.generate(chapters.length, (index) {
+        return ListTile(
+          title: Text(chapters[index].Title!),
+          selected: _selectedIndex == index,
+          onTap: () {
+            Navigator.pop(context);
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+        );
+      });
+    }
+  }
+
   Future<void> openEpub() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
@@ -38,16 +58,6 @@ class _DrawerExampleState extends State<DrawerExample> {
       File file = File(result.files.single.path!);
       List<int> bytes = await file.readAsBytes();
       epubFile = await epubx.EpubReader.readBook(bytes);
-      for (var ch in epubFile!.Chapters!) {
-        debugPrint(ch.Title!);
-        contents.add( ListTile(
-                    title: Text(ch.Title!),
-                    selected: _selectedIndex == 0,
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ));
-      }
       setState(() {
         epubName = epubFile?.Title ?? '';
       });
@@ -76,21 +86,14 @@ class _DrawerExampleState extends State<DrawerExample> {
                     ),
                     child: Text('目录'),
                   ),
-                  ListTile(
-                    title: const Text('Home'),
-                    selected: _selectedIndex == 0,
-                    onTap: () {
-                      // Update the state of the app
-                      // _onItemTapped(0);
-                      // Then close the drawer
-                      Navigator.pop(context);
-                    },
-                  ),
-                ] + contents
-                ),
+                ] +
+                buildContentList(epubFile, _selectedIndex)),
       ),
-      body: Center(
-        child: Text('文件名: $epubName'),
+      body: Column(
+        children: [
+          Text('文件名: $epubName'),
+          Text(epubFile?.Chapters?[_selectedIndex].HtmlContent ?? '')
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openEpub,
