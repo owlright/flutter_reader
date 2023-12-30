@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:epubx/epubx.dart' as epubx;
 import 'dart:io';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 void main() => runApp(const EpubReaderApp());
 
@@ -27,7 +28,7 @@ class DrawerExample extends StatefulWidget {
 
 class _DrawerExampleState extends State<DrawerExample> {
   int _selectedIndex = 0;
-  String epubName = '';
+  String bookTitle = '';
   epubx.EpubBook? epubFile;
   List<Widget> contents = [];
 
@@ -59,7 +60,7 @@ class _DrawerExampleState extends State<DrawerExample> {
       List<int> bytes = await file.readAsBytes();
       epubFile = await epubx.EpubReader.readBook(bytes);
       setState(() {
-        epubName = epubFile?.Title ?? '';
+        bookTitle = epubFile?.Title ?? '';
       });
     } else {
       // User canceled the picker
@@ -89,11 +90,12 @@ class _DrawerExampleState extends State<DrawerExample> {
                 ] +
                 buildContentList(epubFile, _selectedIndex)),
       ),
-      body: Column(
-        children: [
-          Text('文件名: $epubName'),
-          Text(epubFile?.Chapters?[_selectedIndex].HtmlContent ?? '')
-        ],
+      body: Scrollbar(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child:
+              HtmlWidget(epubFile?.Chapters?[_selectedIndex].HtmlContent ?? ''),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openEpub,
