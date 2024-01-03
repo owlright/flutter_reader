@@ -3,8 +3,25 @@ import 'package:file_picker/file_picker.dart';
 import 'package:epubx/epubx.dart' as epubx;
 import 'dart:io';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:window_manager/window_manager.dart';
 
-void main() => runApp(const EpubReaderApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Must add this line.
+  await windowManager.ensureInitialized();
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(800, 600),
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.hidden,
+  );
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+  runApp(const EpubReaderApp());
+}
 
 class EpubReaderApp extends StatelessWidget {
   const EpubReaderApp({super.key});
@@ -80,6 +97,7 @@ class _DrawerExampleState extends State<DrawerExample> {
       drawer: Drawer(
         child: ListView(
             padding: EdgeInsets.zero,
+            primary: true,
             children: <Widget>[
                   const DrawerHeader(
                     decoration: BoxDecoration(
@@ -92,6 +110,7 @@ class _DrawerExampleState extends State<DrawerExample> {
       ),
       body: Scrollbar(
         child: SingleChildScrollView(
+          primary: true,
           padding: const EdgeInsets.all(16.0),
           child:
               HtmlWidget(epubFile?.Chapters?[_selectedIndex].HtmlContent ?? ''),
